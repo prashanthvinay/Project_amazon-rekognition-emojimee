@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+
+        <script>
+            // The Lambda Function URL: 
+            let apiUrl = "#YOUR-LAMBDA-FUNCTION-URL#"
+        </script>
+
+        <meta charset=UTF-8>
+        <title>#YOUR-TITLE#</title>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+        <!-- jQuery library -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <!-- Latest compiled JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script> 
+        <!-- Set viewport -->
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <style>
+            .limit-max {
+                max-width: 600px;
+            }
+        </style>
+
+    </head>
+
+    <body>
+
+        <body>
+
+            <nav class="navbar navbar-light bg-primary">
+                <a class="navbar-brand align-bottom" href="#">
+                  <img src="HAPPY.png" width="30" height="30" alt="Emoji">
+                </a>
+                <span class="navbar-brand mb-0 h1 text-white">#YOUR-TEXT#</span>
+            </nav>
+        
+            <div class="container limit-max">
+
+                <img class="mb-3 mt-3" style="width:100%" id="image-preview" src="BACK.png"></img>
+
+                <div id="file-outer" class="input-group mb-5">
+                    <div class="custom-file">
+                        <input   type="file" class="custom-file-input" id="image-input" accept="image/jpeg, image/png, image/jpg" name="imageLoader">
+                        <label  style="border-radius: 0 !important;" class="custom-file-label" for="imageLoader">Take a photo or upload...</label>
+                    </div>
+                </div>
+
+                <div id="spinner-outer" class="d-flex justify-content-center">
+                    <div id="spinner" class="spinner-border m-3" style="color: orange;width: 3rem; height: 3rem;" role="status">
+                      <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="container text-muted mt-5 p-4 bg-light">
+                <div class="row">
+                  <div class="col-sm">
+                    <p class="text-primary">About</p>
+                    <p>This website is a demo of AWS Rekognition. The page uploads an image to an AWS Lambda function URL. The Lambda function then uses the AWS Rekognition Detect Faces service and replaces the faces in the image with emojis.</p>
+                  </div>
+                </div>
+            </div>
+
+        <script>
+
+            var file     = document.getElementById("file-outer");
+            var spinner     = document.getElementById("spinner");
+
+            file.hidden = false;
+            spinner.hidden = true;
+
+            let imgInput = document.getElementById('image-input');
+            imgInput.addEventListener('change', function (e) {
+                file.hidden = true;
+                spinner.hidden = false;
+                if (e.target.files) {
+                    let imageFile = e.target.files[0];
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        var img = document.createElement("img");
+                        img.onload = function (event) {
+
+                            var MAX_WIDTH = 600;
+                            var MAX_HEIGHT = 600;
+
+                            var width = img.width;
+                            var height = img.height;
+
+                            // Change the resizing logic
+                            if (width > height) {
+                                if (width > MAX_WIDTH) {
+                                    height = height * (MAX_WIDTH / width);
+                                    width = MAX_WIDTH;
+                                }
+                            } else {
+                                if (height > MAX_HEIGHT) {
+                                    width = width * (MAX_HEIGHT / height);
+                                    height = MAX_HEIGHT;
+                                }
+                            }
+
+                            var canvas = document.createElement("canvas");
+                            canvas.width = width;
+                            canvas.height = height;
+                            var ctx = canvas.getContext("2d");
+                            ctx.drawImage(img, 0, 0, width, height);
+    
+                            // Show resized image in preview element
+                            var dataurl = canvas.toDataURL(imageFile.type);
+                            document.getElementById("image-preview").src = dataurl;
+
+                            $.ajax({
+                                type: "POST",
+                                url: apiUrl,
+                                data: dataurl.substr(22),
+                                contentType: "application/json",
+                                success: function(data){
+                                    document.querySelector("#image-preview").src = data;
+                                    file.hidden = false;
+                                    spinner.hidden = true;
+                                },
+                                failure: function(errMsg) {
+                                    alert(errMsg);
+                                    file.hidden = false;
+                                    spinner.hidden = true;
+                                }
+                            }); 
+
+                        }
+                        img.src = e.target.result;
+
+                    }
+                    reader.readAsDataURL(imageFile);
+                }
+            });
+        </script>
+
+    </body>
+</html>
